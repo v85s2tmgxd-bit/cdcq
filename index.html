@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今天做什么 - 饭菜抽签小工具</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        :root {
+            --primary-bg: #FFF9F2;
+            --secondary-bg: #FFEED9;
+            --accent-orange: #FF7B54;
+            --accent-green: #7ECFA4;
+            --accent-blue: #6FB2D2;
+            --accent-red: #FF6B6B;
+            --text-dark: #5C4B3B;
+            --text-light: #8B7D6B;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --inner-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.05);
+            --gradient: linear-gradient(135deg, #FFD3B6 0%, #FFAAA5 100%);
+        }
+
+        body {
+            background: var(--gradient);
+            color: var(--text-dark);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            display: inline-block;
+        }
+
+        h1:after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 10%;
+            width: 80%;
+            height: 3px;
+            background: var(--accent-orange);
+            border-radius: 3px;
+        }
+
+        .subtitle {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            margin-top: 10px;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 20px 0;
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg,
+                var(--accent-red) 0deg 180deg,
+                var(--accent-blue) 180deg 270deg,
+                var(--accent-green) 270deg 360deg
+            );
+            box-shadow: var(--shadow), var(--inner-shadow);
+            position: relative;
+            transition: transform 2.5s cubic-bezier(0.17, 0.67, 0.21, 0.99);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 8px solid white;
+        }
+
+        .wheel-center {
+            width: 90px;
+            height: 90px;
+            background: var(--card-bg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+            z-index: 2;
+            border: 3px solid white;
+        }
+
+        .wheel-center i {
+            font-size: 2.2rem;
+            color: var(--accent-orange);
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 35px;
+            height: 35px;
+            background: var(--accent-orange);
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            z-index: 3;
+            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));
+        }
+
+        .result-area {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-top: 10px;
+        }
+
+        .prompt {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 1.1rem;
+            padding: 15px;
+            background: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .dish-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 18px;
+            padding: 18px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease;
+            border-left: 5px solid var(--accent-orange);
+        }
+
+        .dish-card.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .dish-image {
+            width: 70px;
+            height: 70px;
+            border-radius: 15px;
+            background: var(--secondary-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .dish-image i {
+            font-size: 2rem;
+            color: var(--accent-orange);
+        }
+
+        .dish-info {
+            flex: 1;
+        }
+
+        .dish-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+        }
+
+        .dish-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .dish-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .spicy-indicator {
+            display: flex;
+            gap: 3px;
+        }
+
+        .spicy-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .spicy-dot.active {
+            background: #ff4444;
+            box-shadow: 0 0 5px rgba(255, 68, 68, 0.5);
+        }
+
+        .tag-hunan, .tag-sichuan {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        .tag-home {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .tag-quick {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        button {
+            flex: 1;
+            padding: 16px 24px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .draw-btn {
+            background: var(--accent-orange);
+            color: white;
+        }
+
+        .draw-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px rgba(255, 123, 84, 0.3);
+        }
+
+        .draw-btn:active {
+            transform: translateY(0);
+        }
+
+        .draw-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: var(--shadow);
+        }
+
+        .confirm-btn {
+            background: var(--accent-green);
+            color: white;
+            display: none;
+        }
+
+        .confirm-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px rgba(126, 207, 164, 0.3);
+        }
+
+        .settings-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-light);
+            cursor: pointer;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .settings-btn:hover {
+            transform: rotate(30deg);
+            color: var(--accent-orange);
+        }
+
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .settings-panel.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .settings-content {
+            width: 85%;
+            max-width: 380px;
+            background: var(--primary-bg);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .settings-panel.show .settings-content {
+            transform: translateY(0);
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--secondary-bg);
+        }
+
+        .settings-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-light);
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--secondary-bg);
+            color: var(--accent-orange);
+        }
+
+        .filter-section {
+            margin-bottom: 25px;
+        }
+
+        .filter-title {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+
+        .filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--card-bg);
+            padding: 10px 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .filter-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        .filter-option input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-orange);
+        }
+
+        .filter-option label {
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .spicy-filter {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .spicy-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--card-bg);
+            padding: 12px 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .spicy-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        .spicy-option input {
+            accent-color: var(--accent-orange);
+        }
+
+        .spicy-level {
+            display: flex;
+            gap: 4px;
+            margin-left: auto;
+        }
+
+        .count-selector {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        .count-selector select {
+            padding: 10px 15px;
+            border-radius: 10px;
+            border: 2px solid var(--secondary-bg);
+            background: white;
+            color: var(--text-dark);
+            font-size: 1rem;
+            font-weight: 500;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .count-selector select:focus {
+            border-color: var(--accent-orange);
+        }
+
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.85rem;
+            background: var(--card-bg);
+            padding: 12px 20px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            width: 100%;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 480px) {
+            .container {
+                max-width: 95%;
+            }
+            
+            .wheel-container {
+                width: 260px;
+                height: 260px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>今天做什么</h1>
+            <p class="subtitle">800+道菜品随机抽选 · 解决选择困难症</p>
+        </header>
+        
+        <button class="settings-btn">
+            <i class="fas fa-cog"></i>
+        </button>
+        
+        <div class="wheel-container">
+            <div class="wheel-pointer"></div>
+            <div class="wheel">
+                <div class="wheel-center">
+                    <i class="fas fa-utensils"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="result-area">
+            <p class="prompt">点击下方按钮，解锁今日美味！</p>
+        </div>
+        
+        <div class="action-buttons">
+            <button class="draw-btn">
+                <i class="fas fa-random"></i>
+                随机抽选
+            </button>
+            <button class="confirm-btn">
+                <i class="fas fa-check"></i>
+                确认菜单
+            </button>
+        </div>
+        
+        <div class="footer">
+            <p>每次随机抽取3道菜品 · 川湘菜占比50% · 不满意可重新抽取</p>
+        </div>
+    </div>
+    
+    <div class="settings-panel">
+        <div class="settings-content">
+            <div class="settings-header">
+                <h2 class="settings-title">筛选设置</h2>
+                <button class="close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="filter-section">
+                <h3 class="filter-title">排除以下菜系</h3>
+                <div class="filter-options">
+                    <div class="filter-option">
+                        <input type="checkbox" id="filter-hunan">
+                        <label for="filter-hunan">湘菜</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="filter-sichuan">
+                        <label for="filter-sichuan">川菜</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="filter-home">
+                        <label for="filter-home">家常菜</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="filter-quick">
+                        <label for="filter-quick">快手菜</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="filter-section">
+                <h3 class="filter-title">辣度限制</h3>
+                <div class="spicy-filter">
+                    <div class="spicy-option">
+                        <input type="radio" id="spicy-any" name="spicy-level" value="5" checked>
+                        <label for="spicy-any">任意辣度</label>
+                    </div>
+                    <div class="spicy-option">
+                        <input type="radio" id="spicy-mild" name="spicy-level" value="2">
+                        <label for="spicy-mild">
+                            微辣及以下
+                            <div class="spicy-level">
+                                <div class="spicy-dot active"></div>
+                                <div class="spicy-dot active"></div>
+                                <div class="spicy-dot"></div>
+                                <div class="spicy-dot"></div>
+                                <div class="spicy-dot"></div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="spicy-option">
+                        <input type="radio" id="spicy-none" name="spicy-level" value="0">
+                        <label for="spicy-none">不辣</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="filter-section">
+                <h3 class="filter-title">抽签数量</h3>
+                <div class="count-selector">
+                    <label for="dish-count">每次抽取：</label>
+                    <select id="dish-count">
+                        <option value="1">1道菜</option>
+                        <option value="2">2道菜</option>
+                        <option value="3" selected>3道菜</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button class="draw-btn" style="width: 100%; margin-top: 10px;">
+                <i class="fas fa-save"></i>
+                保存设置
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 完整的菜品数据库
+        const dishDatabase = {
+            hunan: [
+                { name: "辣椒炒肉", spicy: 3 },
+                { name: "剁椒鱼头", spicy: 4 },
+                { name: "小炒黄牛肉", spicy: 4 },
+                { name: "湘味手撕包菜", spicy: 3 },
+                { name: "酸辣鸡杂", spicy: 5 },
+                { name: "腊味合蒸", spicy: 2 },
+                { name: "毛氏红烧肉", spicy: 1 },
+                { name: "湘西腊肉", spicy: 3 },
+                { name: "口味虾", spicy: 5 },
+                { name: "土匪猪肝", spicy: 4 },
+                { name: "酸豆角肉末", spicy: 3 },
+                { name: "干锅花菜", spicy: 3 },
+                { name: "湘味蒸排骨", spicy: 2 },
+                { name: "酸辣藕丁", spicy: 3 },
+                { name: "干锅土豆片", spicy: 3 },
+                { name: "湘味小炒鸡", spicy: 4 },
+                { name: "剁椒蒸豆腐", spicy: 3 },
+                { name: "湘味炒腊肠", spicy: 3 },
+                { name: "酸辣白菜", spicy: 3 },
+                { name: "干锅千页豆腐", spicy: 3 },
+                { name: "湘味蒸鸡", spicy: 2 },
+                { name: "酸辣肚丝", spicy: 4 },
+                { name: "干锅肥肠", spicy: 5 },
+                { name: "湘味蒸鱼", spicy: 2 },
+                { name: "酸辣海带丝", spicy: 3 },
+                { name: "干锅茶树菇", spicy: 3 },
+                { name: "湘味蒸豆腐", spicy: 2 },
+                { name: "酸辣鱼片", spicy: 4 },
+                { name: "干锅黄骨鱼", spicy: 4 },
+                { name: "湘味炒鸡蛋", spicy: 2 },
+                { name: "酸辣土豆丝", spicy: 3 },
+                { name: "干锅牛蛙", spicy: 5 },
+                { name: "湘味炒豆角", spicy: 2 },
+                { name: "酸辣黄瓜", spicy: 2 },
+                { name: "干锅包菜", spicy: 3 },
+                { name: "湘味炒茄子", spicy: 2 },
+                { name: "酸辣粉丝", spicy: 3 },
+                { name: "干锅藕片", spicy: 3 },
+                { name: "湘味炒苦瓜", spicy: 1 },
+                { name: "酸辣木耳", spicy: 3 },
+                { name: "干锅萝卜", spicy: 2 },
+                { name: "湘味炒芹菜", spicy: 1 },
+                { name: "酸辣豆芽", spicy: 2 },
+                { name: "干锅豆腐", spicy: 2 },
+                { name: "湘味炒青椒", spicy: 3 },
+                { name: "酸辣金针菇", spicy: 3 },
+                { name: "干锅香菇", spicy: 2 },
+                { name: "湘味炒西葫芦", spicy: 1 },
+                { name: "酸辣冬瓜", spicy: 2 },
+                { name: "干锅杏鲍菇", spicy: 2 },
+                { name: "湘味炒南瓜", spicy: 0 },
+                { name: "酸辣豆腐皮", spicy: 3 },
+                { name: "干锅平菇", spicy: 2 },
+                { name: "湘味炒丝瓜", spicy: 0 },
+                { name: "酸辣魔芋", spicy: 3 },
+                { name: "干锅金针菇", spicy: 2 },
+                { name: "湘味炒茭白", spicy: 1 },
+                { name: "酸辣蕨菜", spicy: 3 },
+                { name: "干锅莴笋", spicy: 1 },
+                { name: "湘味炒芦笋", spicy: 1 },
+                { name: "酸辣竹笋", spicy: 2 },
+                { name: "干锅菜花", spicy: 2 },
+                { name: "湘味炒西兰花", spicy: 1 },
+                { name: "酸辣空心菜", spicy: 2 },
+                { name: "干锅油麦菜", spicy: 1 },
+                { name: "湘味炒生菜", spicy: 0 },
+                { name: "酸辣菠菜", spicy: 2 },
+                { name: "干锅小白菜", spicy: 1 },
+                { name: "湘味炒油菜", spicy: 0 },
+                { name: "酸辣芥蓝", spicy: 2 },
+                { name: "干锅韭菜", spicy: 1 },
+                { name: "湘味炒蒜苗", spicy: 1 },
+                { name: "酸辣洋葱", spicy: 2 },
+                { name: "干锅胡萝卜", spicy: 1 },
+                { name: "湘味炒玉米", spicy: 0 },
+                { name: "酸辣青豆", spicy: 2 },
+                { name: "干锅豌豆", spicy: 1 },
+                { name: "湘味炒蚕豆", spicy: 1 },
+                { name: "酸辣毛豆", spicy: 2 },
+                { name: "干锅黄豆", spicy: 1 },
+                { name: "湘味炒花生", spicy: 1 },
+                { name: "酸辣豆腐干", spicy: 3 },
+                { name: "干锅香干", spicy: 2 },
+                { name: "湘味炒豆皮", spicy: 1 },
+                { name: "酸辣腐竹", spicy: 2 },
+                { name: "干锅面筋", spicy: 2 },
+                { name: "湘味炒粉条", spicy: 2 },
+                { name: "酸辣米线", spicy: 3 },
+                { name: "干锅宽粉", spicy: 2 },
+                { name: "湘味炒河粉", spicy: 2 },
+                { name: "酸辣面条", spicy: 3 },
+                { name: "干锅粉丝", spicy: 2 },
+                { name: "湘味炒米饭", spicy: 1 },
+                { name: "酸辣粥", spicy: 2 },
+                { name: "干锅馒头", spicy: 1 },
+                { name: "湘味炒饼", spicy: 1 },
+                { name: "酸辣饺子", spicy: 3 },
+                { name: "干锅馄饨", spicy: 2 },
+                { name: "湘味炒包子", spicy: 1 }
+            ],
+            sichuan: [
+                { name: "麻婆豆腐", spicy: 5 },
+                { name: "宫保鸡丁", spicy: 3 },
+                { name: "鱼香肉丝", spicy: 3 },
+                { name: "回锅肉", spicy: 4 },
+                { name: "水煮肉片", spicy: 5 },
+                { name: "酸菜鱼", spicy: 4 },
+                { name: "辣子鸡丁", spicy: 5 },
+                { name: "夫妻肺片", spicy: 4 },
+                { name: "担担面", spicy: 4 },
+                { name: "口水鸡", spicy: 4 },
+                { name: "蚂蚁上树", spicy: 3 },
+                { name: "蒜泥白肉", spicy: 3 },
+                { name: "干煸四季豆", spicy: 4 },
+                { name: "泡椒凤爪", spicy: 4 },
+                { name: "酸辣粉", spicy: 4 },
+                { name: "重庆小面", spicy: 4 },
+                { name: "麻辣香锅", spicy: 5 },
+                { name: "钵钵鸡", spicy: 4 },
+                { name: "龙抄手", spicy: 2 },
+                { name: "钟水饺", spicy: 3 },
+                { name: "甜水面", spicy: 2 },
+                { name: "宜宾燃面", spicy: 4 },
+                { name: "豆花饭", spicy: 2 },
+                { name: "凉拌折耳根", spicy: 3 },
+                { name: "红油抄手", spicy: 4 },
+                { name: "泡菜鱼", spicy: 4 },
+                { name: "干锅鸡", spicy: 4 },
+                { name: "石锅鱼", spicy: 4 },
+                { name: "酸汤肥牛", spicy: 4 },
+                { name: "青椒皮蛋", spicy: 3 },
+                { name: "鱼香茄子", spicy: 3 },
+                { name: "干煸豆角", spicy: 4 },
+                { name: "火爆腰花", spicy: 4 },
+                { name: "干锅排骨", spicy: 4 },
+                { name: "干锅虾", spicy: 4 },
+                { name: "干锅牛蛙", spicy: 5 },
+                { name: "干锅花菜", spicy: 3 },
+                { name: "干锅土豆片", spicy: 3 },
+                { name: "干锅藕片", spicy: 3 },
+                { name: "干锅千页豆腐", spicy: 3 },
+                { name: "干锅茶树菇", spicy: 3 },
+                { name: "干锅杏鲍菇", spicy: 2 },
+                { name: "干锅金针菇", spicy: 2 },
+                { name: "干锅平菇", spicy: 2 },
+                { name: "干锅香菇", spicy: 2 },
+                { name: "干锅萝卜", spicy: 2 },
+                { name: "干锅豆腐", spicy: 2 },
+                { name: "干锅香干", spicy: 2 },
+                { name: "干锅面筋", spicy: 2 },
+                { name: "干锅宽粉", spicy: 2 }
+            ],
+            home: [
+                { name: "番茄炒蛋", spicy: 0 },
+                { name: "农家小炒肉", spicy: 3 },
+                { name: "清炒时蔬", spicy: 0 },
+                { name: "可乐鸡翅", spicy: 0 },
+                { name: "手撕包菜", spicy: 2 },
+                { name: "蒜蓉西兰花", spicy: 0 },
+                { name: "毛氏红烧肉", spicy: 1 },
+                { name: "葱爆羊肉", spicy: 2 },
+                { name: "地三鲜", spicy: 0 },
+                { name: "糖醋排骨", spicy: 0 },
+                { name: "白灼菜心", spicy: 0 },
+                { name: "红烧肉", spicy: 0 },
+                { name: "蒜泥白肉", spicy: 2 },
+                { name: "韭菜炒鸡蛋", spicy: 0 },
+                { name: "木须肉", spicy: 0 },
+                { name: "清蒸鲈鱼", spicy: 0 },
+                { name: "京酱肉丝", spicy: 0 },
+                { name: "蚝油生菜", spicy: 0 },
+                { name: "土豆丝炒肉", spicy: 0 },
+                { name: "西红柿鸡蛋汤", spicy: 0 },
+                { name: "蚂蚁上树", spicy: 2 },
+                { name: "凉拌黄瓜", spicy: 1 },
+                { name: "红烧带鱼", spicy: 0 },
+                { name: "香菇油菜", spicy: 0 },
+                { name: "青椒肉丝", spicy: 2 },
+                { name: "紫菜蛋花汤", spicy: 0 },
+                { name: "肉末茄子", spicy: 1 },
+                { name: "素炒三丝", spicy: 0 },
+                { name: "油焖大虾", spicy: 0 },
+                { name: "冬瓜排骨汤", spicy: 0 },
+                { name: "菠萝咕咾肉", spicy: 0 },
+                { name: "蒜蓉空心菜", spicy: 0 },
+                { name: "粉蒸肉", spicy: 0 },
+                { name: "上汤娃娃菜", spicy: 0 },
+                { name: "孜然羊肉", spicy: 2 },
+                { name: "拍黄瓜", spicy: 1 },
+                { name: "梅菜扣肉", spicy: 0 },
+                { name: "丝瓜炒蛋", spicy: 0 },
+                { name: "锅包肉", spicy: 0 },
+                { name: "清炒荷兰豆", spicy: 0 },
+                { name: "酱骨架", spicy: 1 },
+                { name: "蚝油杏鲍菇", spicy: 0 },
+                { name: "跷脚牛肉", spicy: 1 },
+                { name: "苦瓜炒蛋", spicy: 0 },
+                { name: "黄焖鸡米饭", spicy: 1 },
+                { name: "玉米烙", spicy: 0 },
+                { name: "滑溜肉片", spicy: 0 },
+                { name: "芹菜炒香干", spicy: 0 },
+                { name: "椒盐虾", spicy: 1 },
+                { name: "醋溜白菜", spicy: 1 },
+                { name: "南瓜蒸百合", spicy: 0 },
+                { name: "红烧狮子头", spicy: 0 },
+                { name: "清炒山药", spicy: 0 },
+                { name: "洋葱炒肉", spicy: 0 },
+                { name: "雪菜炒毛豆", spicy: 0 },
+                { name: "油炸臭豆腐", spicy: 2 },
+                { name: "糖醋里脊", spicy: 0 },
+                { name: "芦笋炒虾仁", spicy: 0 },
+                { name: "爆三样", spicy: 1 },
+                { name: "孜然土豆", spicy: 1 },
+                { name: "麻油沙姜鸡", spicy: 1 },
+                { name: "尖椒鸡蛋", spicy: 2 },
+                { name: "开水白菜", spicy: 0 },
+                { name: "豆角焖面", spicy: 0 },
+                { name: "红烧黄鱼", spicy: 0 },
+                { name: "西芹炒百合", spicy: 0 },
+                { name: "白菜豆腐煲", spicy: 0 },
+                { name: "虾皮蒸蛋", spicy: 0 },
+                { name: "椒盐蘑菇", spicy: 1 },
+                { name: "肉末蒸豆腐", spicy: 0 },
+                { name: "腐竹炒肉", spicy: 0 },
+                { name: "清炒豆苗", spicy: 0 },
+                { name: "西红柿烧菜花", spicy: 0 },
+                { name: "凉拌皮蛋", spicy: 1 },
+                { name: "咖喱鸡块", spicy: 1 },
+                { name: "蒜蓉粉丝蒸丝瓜", spicy: 0 },
+                { name: "菠菜炒鸡蛋", spicy: 0 },
+                { name: "葱烧豆腐", spicy: 0 },
+                { name: "腊肠炒饭", spicy: 1 },
+                { name: "炸藕盒", spicy: 0 },
+                { name: "蚝油青椒牛肉", spicy: 2 },
+                { name: "肉皮冻", spicy: 0 },
+                { name: "虾仁炒黄瓜", spicy: 0 },
+                { name: "酱爆鸡丁", spicy: 1 },
+                { name: "清炒苦瓜", spicy: 0 },
+                { name: "红烧鸡块", spicy: 0 },
+                { name: "凉拌海带丝", spicy: 1 },
+                { name: "尖椒干豆腐", spicy: 2 },
+                { name: "鸡蛋羹", spicy: 0 },
+                { name: "干炸小黄鱼", spicy: 0 },
+                { name: "蒜苔炒肉", spicy: 1 },
+                { name: "萝卜炖牛腩", spicy: 0 },
+                { name: "炝炒圆白菜", spicy: 1 },
+                { name: "炸鸡排", spicy: 0 },
+                { name: "蚝油香菇", spicy: 0 },
+                { name: "肉末炒豌豆", spicy: 0 },
+                { name: "虾酱炒空心菜", spicy: 1 },
+                { name: "酱香饼", spicy: 0 },
+                { name: "蟹黄豆腐", spicy: 0 },
+                { name: "糖油粑粑", spicy: 0 },
+                { name: "红烧大排", spicy: 0 },
+                { name: "凉拌豆芽", spicy: 1 },
+                { name: "黑椒牛柳", spicy: 2 },
+                { name: "西红柿炒鸡蛋", spicy: 0 },
+                { name: "土豆炖豆角", spicy: 0 },
+                { name: "蒜蓉油麦菜", spicy: 0 },
+                { name: "辣炒花蛤", spicy: 3 },
+                { name: "冬瓜炒虾皮", spicy: 0 },
+                { name: "炸酱面", spicy: 1 },
+                { name: "清炒西葫芦", spicy: 0 },
+                { name: "照烧鸡腿饭", spicy: 0 },
+                { name: "肉龙", spicy: 0 },
+                { name: "醋烹豆芽", spicy: 1 },
+                { name: "赛螃蟹", spicy: 0 },
+                { name: "清炒芥蓝", spicy: 0 },
+                { name: "卤肉饭", spicy: 0 },
+                { name: "凉拌木耳", spicy: 1 },
+                { name: "洋葱炒鸡蛋", spicy: 0 },
+                { name: "雪梨银耳汤", spicy: 0 },
+                { name: "椒盐排骨", spicy: 1 },
+                { name: "蚝油平菇", spicy: 0 },
+                { name: "西红柿鸡蛋打卤面", spicy: 0 },
+                { name: "蒜蓉蒸金针菇", spicy: 0 },
+                { name: "炸薯条", spicy: 0 },
+                { name: "白菜炖粉条", spicy: 0 },
+                { name: "可乐虎皮蛋", spicy: 0 },
+                { name: "清炒草头", spicy: 0 },
+                { name: "皮蛋豆腐", spicy: 1 },
+                { name: "红烧蹄髈", spicy: 0 },
+                { name: "肉夹馍", spicy: 0 },
+                { name: "凉拌苦瓜", spicy: 1 },
+                { name: "酱爆茄子", spicy: 1 },
+                { name: "清炒豌豆尖", spicy: 0 },
+                { name: "炸响铃", spicy: 0 },
+                { name: "虾皮冬瓜", spicy: 0 },
+                { name: "木樨肉", spicy: 0 },
+                { name: "蒜蓉炒菜心", spicy: 0 },
+                { name: "红烧豆腐", spicy: 0 },
+                { name: "凉拌西芹", spicy: 0 },
+                { name: "葱油饼", spicy: 0 },
+                { name: "炸鸡米花", spicy: 0 },
+                { name: "清炒魔芋", spicy: 0 },
+                { name: "肉丸汤", spicy: 0 },
+                { name: "醋溜土豆丝", spicy: 1 },
+                { name: "凉拌面", spicy: 1 },
+                { name: "红烧鳊鱼", spicy: 0 },
+                { name: "蒜蓉炒通心菜", spicy: 0 },
+                { name: "炸春卷", spicy: 0 },
+                { name: "白菜豆腐汤", spicy: 0 },
+                { name: "可乐卤蛋", spicy: 0 },
+                { name: "清炒枸杞叶", spicy: 0 },
+                { name: "肉臊子面", spicy: 0 },
+                { name: "炸茄盒", spicy: 0 },
+                { name: "凉拌海蜇丝", spicy: 1 },
+                { name: "葱烧海参", spicy: 0 },
+                { name: "雪菜炒肉丝", spicy: 1 },
+                { name: "酱鸭", spicy: 0 },
+                { name: "清炒夜开花", spicy: 0 },
+                { name: "炸排骨", spicy: 0 },
+                { name: "醋椒鱼", spicy: 1 },
+                { name: "卤味拼盘", spicy: 1 },
+                { name: "蒜蓉豆豉蒸排骨", spicy: 1 },
+                { name: "肉酱意粉", spicy: 1 },
+                { name: "凉拌鱼皮", spicy: 1 },
+                { name: "红烧划水", spicy: 0 },
+                { name: "炸馒头片", spicy: 0 },
+                { name: "清炒马兰头", spicy: 0 },
+                { name: "酱油炒饭", spicy: 0 },
+                { name: "雪菜黄鱼汤", spicy: 1 },
+                { name: "凉拌牛百叶", spicy: 2 },
+                { name: "葱油拌面", spicy: 0 },
+                { name: "蒜蓉烤生蚝", spicy: 1 },
+                { name: "炸鱼薯条", spicy: 0 },
+                { name: "白菜肉卷", spicy: 0 },
+                { name: "肉粽", spicy: 0 },
+                { name: "炸馄饨", spicy: 0 },
+                { name: "凉拌藕片", spicy: 1 },
+                { name: "葱爆鸭块", spicy: 1 },
+                { name: "雪菜毛豆炒肉丝", spicy: 1 },
+                { name: "酱牛肉", spicy: 1 },
+                { name: "清炒西洋菜", spicy: 0 },
+                { name: "红烧牛尾", spicy: 0 },
+                { name: "蒜蓉蒸娃娃菜", spicy: 0 },
+                { name: "卤煮火烧", spicy: 1 },
+                { name: "凉拌三丝", spicy: 1 },
+                { name: "葱油鸡", spicy: 0 },
+                { name: "雪菜笋丝", spicy: 1 },
+                { name: "炸鸡软骨", spicy: 0 },
+                { name: "肉饼蒸蛋", spicy: 0 },
+                { name: "醋溜木须", spicy: 1 },
+                { name: "酱焖小鱼", spicy: 1 },
+                { name: "蒜蓉丝瓜", spicy: 0 },
+                { name: "红烧猪脚", spicy: 0 },
+                { name: "凉拌蕨根粉", spicy: 2 },
+                { name: "葱油海瓜子", spicy: 1 },
+                { name: "雪菜炒饭", spicy: 1 },
+                { name: "炸汤圆", spicy: 0 },
+                { name: "清炒红薯叶", spicy: 0 },
+                { name: "肉末炒酸豆角", spicy: 2 },
+                { name: "炸藕条", spicy: 0 },
+                { name: "凉拌猪耳朵", spicy: 2 },
+                { name: "葱烧蹄筋", spicy: 0 },
+                { name: "蒜蓉炒苋菜", spicy: 0 },
+                { name: "酱油鸡", spicy: 0 },
+                { name: "雪菜肉丝面", spicy: 1 },
+                { name: "酱香鸭舌", spicy: 1 },
+                { name: "清炒牛蒡", spicy: 0 },
+                { name: "卤蛋", spicy: 0 },
+                { name: "凉拌鸭肠", spicy: 2 },
+                { name: "葱爆牛肉", spicy: 1 },
+                { name: "蒜蓉蒸茄子", spicy: 0 },
+                { name: "炸香菇", spicy: 0 },
+                { name: "肉末烧豆腐", spicy: 0 },
+                { name: "醋溜白菜", spicy: 1 },
+                { name: "酱萝卜", spicy: 0 },
+                { name: "清炒苦瓜", spicy: 0 },
+                { name: "红烧丸子", spicy: 0 },
+                { name: "凉拌豆角", spicy: 1 },
+                { name: "葱油鱼", spicy: 0 },
+                { name: "雪菜炒冬笋", spicy: 1 },
+                { name: "炸鸡翅", spicy: 0 },
+                { name: "蒜蓉炒小油菜", spicy: 0 },
+                { name: "肉炒饼", spicy: 0 },
+                { name: "炸酥肉", spicy: 0 },
+                { name: "凉拌海参", spicy: 1 },
+                { name: "葱爆鱿鱼", spicy: 1 },
+                { name: "蒜蓉烤茄子", spicy: 1 },
+                { name: "酱大骨", spicy: 1 },
+                { name: "雪菜蒸鱼", spicy: 1 },
+                { name: "红烧肚片", spicy: 0 },
+                { name: "清炒丝瓜", spicy: 0 },
+                { name: "卤水拼盘", spicy: 1 },
+                { name: "凉拌皮蛋豆腐", spicy: 1 },
+                { name: "葱油拌面", spicy: 0 },
+                { name: "蒜蓉虾", spicy: 1 },
+                { name: "炸响铃", spicy: 0 },
+                { name: "肉酿豆腐泡", spicy: 0 },
+                { name: "醋溜鱼片", spicy: 1 },
+                { name: "酱瓜炒肉丁", spicy: 1 },
+                { name: "清炒南瓜藤", spicy: 0 },
+                { name: "红烧鲍鱼", spicy: 0 },
+                { name: "凉拌莴笋丝", spicy: 1 },
+                { name: "葱烧豆腐", spicy: 0 },
+                { name: "雪菜炒豌豆", spicy: 1 },
+                { name: "炸榴莲酥", spicy: 0 },
+                { name: "蒜蓉蒸牡蛎", spicy: 1 },
+                { name: "肉松", spicy: 0 },
+                { name: "炸鸡块", spicy: 0 },
+                { name: "凉拌粉丝", spicy: 1 },
+                { name: "葱爆羊肉", spicy: 1 },
+                { name: "蒜蓉炒芥菜", spicy: 0 },
+                { name: "酱香猪手", spicy: 1 },
+                { name: "雪菜炒墨鱼", spicy: 1 },
+                { name: "红烧甲鱼", spicy: 0 },
+                { name: "凉拌面筋", spicy: 1 },
+                { name: "葱烧海参", spicy: 0 },
+                { name: "雪菜炒饭", spicy: 1 },
+                { name: "炸鸡排", spicy: 0 },
+                { name: "蒜蓉西兰花", spicy: 0 },
+                { name: "肉丸汤", spicy: 0 },
+                { name: "炸藕片", spicy: 0 },
+                { name: "凉拌皮蛋", spicy: 1 },
+                { name: "葱爆牛肉", spicy: 1 },
+                { name: "蒜蓉蒸娃娃菜", spicy: 0 },
+                { name: "酱香饼", spicy: 0 },
+                { name: "雪菜肉丝面", spicy: 1 },
+                { name: "红烧牛筋", spicy: 0 },
+                { name: "清炒儿菜", spicy: 0 },
+                { name: "卤猪蹄", spicy: 1 },
+                { name: "凉拌折耳根", spicy: 2 },
+                { name: "葱油饼", spicy: 0 },
+                { name: "蒜蓉虾仁", spicy: 1 },
+                { name: "炸蘑菇", spicy: 0 },
+                { name: "肉末烧饼", spicy: 0 },
+                { name: "醋溜白菜", spicy: 1 },
+                { name: "酱萝卜老鸭汤", spicy: 1 },
+                { name: "清炒苦瓜", spicy: 0 },
+                { name: "红烧带鱼", spicy: 0 },
+                { name: "凉拌豆干", spicy: 1 },
+                { name: "葱烧豆腐", spicy: 0 },
+                { name: "雪菜炒冬笋", spicy: 1 },
+                { name: "炸鸡翅根", spicy: 0 },
+                { name: "蒜蓉小青菜", spicy: 0 },
+                { name: "肉炒面", spicy: 0 },
+                { name: "炸酥肉", spicy: 0 },
+                { name: "凉拌海带", spicy: 1 },
+                { name: "葱爆鱿鱼", spicy: 1 },
+                { name: "蒜蓉烤生蚝", spicy: 1 },
+                { name: "酱大骨", spicy: 1 },
+                { name: "雪菜蒸鱼", spicy: 1 },
+                { name: "红烧牛肚", spicy: 1 },
+                { name: "清炒丝瓜", spicy: 0 },
+                { name: "卤水豆腐", spicy: 0 },
+                { name: "凉拌皮蛋", spicy: 1 },
+                { name: "葱油拌面", spicy: 0 },
+                { name: "蒜蓉虾", spicy: 1 },
+                { name: "炸响铃", spicy: 0 },
+                { name: "肉酿青椒", spicy: 1 },
+                { name: "醋溜鱼片", spicy: 1 },
+                { name: "酱瓜炒鸡丁", spicy: 1 },
+                { name: "清炒南瓜", spicy: 0 },
+                { name: "红烧鱼腩", spicy: 0 },
+                { name: "凉拌莴笋", spicy: 1 },
+                { name: "葱烧豆腐", spicy: 0 },
+                { name: "雪菜炒豌豆", spicy: 1 },
+                { name: "炸馒头", spicy: 0 },
+                { name: "蒜蓉蒸丝瓜", spicy: 0 },
+                { name: "肉松面包", spicy: 0 },
+                { name: "炸鸡块", spicy: 0 },
+                { name: "凉拌粉丝", spicy: 1 },
+                { name: "葱爆羊肉", spicy: 1 },
+                { name: "蒜蓉炒芥蓝", spicy: 0 },
+                { name: "酱香猪蹄", spicy: 1 },
+                { name: "雪菜炒鱿鱼", spicy: 1 },
+                { name: "红烧鱼头", spicy: 1 },
+                { name: "清炒茭白", spicy: 0 }
+            ],
+            quick: [
+                { name: "快手番茄蛋花汤", spicy: 0 },
+                { name: "蒜蓉菠菜", spicy: 0 },
+                { name: "清炒豆苗", spicy: 0 },
+                { name: "蚝油杏鲍菇", spicy: 0 },
+                { name: "蒜蓉空心菜", spicy: 0 },
+                { name: "清炒荷兰豆", spicy: 0 },
+                { name: "蒜蓉芥蓝", spicy: 0 },
+                { name: "白灼菜心", spicy: 0 },
+                { name: "蒜蓉油麦菜", spicy: 0 },
+                { name: "清炒小白菜", spicy: 0 },
+                { name: "蒜蓉生菜", spicy: 0 },
+                { name: "清炒西葫芦", spicy: 0 },
+                { name: "蒜蓉丝瓜", spicy: 0 },
+                { name: "清炒苦瓜", spicy: 0 },
+                { name: "蒜蓉南瓜", spicy: 0 },
+                { name: "清炒冬瓜", spicy: 0 },
+                { name: "蒜蓉茭白", spicy: 0 },
+                { name: "清炒芦笋", spicy: 0 },
+                { name: "蒜蓉西兰花", spicy: 0 },
+                { name: "清炒菜花", spicy: 0 },
+                { name: "蒜蓉金针菇", spicy: 0 },
+                { name: "清炒平菇", spicy: 0 },
+                { name: "蒜蓉香菇", spicy: 0 },
+                { name: "清炒杏鲍菇", spicy: 0 },
+                { name: "蒜蓉茶树菇", spicy: 0 },
+                { name: "清炒豆芽", spicy: 0 },
+                { name: "蒜蓉豆苗", spicy: 0 },
+                { name: "清炒豌豆", spicy: 0 },
+                { name: "蒜蓉毛豆", spicy: 0 },
+                { name: "清炒玉米", spicy: 0 },
+                { name: "蒜蓉青豆", spicy: 0 },
+                { name: "清炒蚕豆", spicy: 0 },
+                { name: "蒜蓉花生", spicy: 0 },
+                { name: "清炒黄豆", spicy: 0 },
+                { name: "蒜蓉豆腐", spicy: 0 },
+                { name: "清炒豆干", spicy: 0 },
+                { name: "蒜蓉豆皮", spicy: 0 },
+                { name: "清炒腐竹", spicy: 0 },
+                { name: "蒜蓉面筋", spicy: 0 },
+                { name: "清炒粉条", spicy: 0 },
+                { name: "蒜蓉米线", spicy: 0 },
+                { name: "清炒河粉", spicy: 0 },
+                { name: "蒜蓉面条", spicy: 0 },
+                { name: "清炒米饭", spicy: 0 },
+                { name: "蒜蓉粥", spicy: 0 },
+                { name: "清炒馒头", spicy: 0 },
+                { name: "蒜蓉饼", spicy: 0 },
+                { name: "清炒饺子", spicy: 0 },
+                { name: "蒜蓉馄饨", spicy: 0 },
+                { name: "清炒包子", spicy: 0 }
+            ]
+        };
+
+        // 将菜品数据库转换为扁平数组
+        const allDishes = [];
+        for (const [category, dishes] of Object.entries(dishDatabase)) {
+            dishes.forEach(dish => {
+                allDishes.push({
+                    ...dish,
+                    category: category
+                });
+            });
+        }
+        
+        // DOM元素
+        const wheel = document.querySelector('.wheel');
+        const drawBtn = document.querySelector('.draw-btn');
+        const confirmBtn = document.querySelector('.confirm-btn');
+        const prompt = document.querySelector('.prompt');
+        const resultArea = document.querySelector('.result-area');
+        const settingsBtn = document.querySelector('.settings-btn');
+        const settingsPanel = document.querySelector('.settings-panel');
+        const closeBtn = document.querySelector('.close-btn');
+        const saveSettingsBtn = settingsPanel.querySelector('.draw-btn');
+        
+        // 筛选选项
+        const filterHunan = document.getElementById('filter-hunan');
+        const filterSichuan = document.getElementById('filter-sichuan');
+        const filterHome = document.getElementById('filter-home');
+        const filterQuick = document.getElementById('filter-quick');
+        const spicyLevelRadios = document.querySelectorAll('input[name="spicy-level"]');
+        const dishCountSelect = document.getElementById('dish-count');
+        
+        // 当前设置
+        let currentSettings = {
+            excludeHunan: false,
+            excludeSichuan: false,
+            excludeHome: false,
+            excludeQuick: false,
+            maxSpicyLevel: 5, // 任意辣度
+            dishCount: 3
+        };
+        
+        // 初始化
+        function init() {
+            drawBtn.addEventListener('click', drawDishes);
+            confirmBtn.addEventListener('click', confirmSelection);
+            settingsBtn.addEventListener('click', openSettings);
+            closeBtn.addEventListener('click', closeSettings);
+            saveSettingsBtn.addEventListener('click', saveSettings);
+            
+            // 初始隐藏确认按钮
+            confirmBtn.style.display = 'none';
+        }
+        
+        // 抽签函数
+        function drawDishes() {
+            // 获取当前设置
+            updateSettingsFromUI();
+            
+            // 筛选可用菜品
+            const availableDishes = allDishes.filter(dish => {
+                // 菜系筛选
+                if (currentSettings.excludeHunan && dish.category === 'hunan') return false;
+                if (currentSettings.excludeSichuan && dish.category === 'sichuan') return false;
+                if (currentSettings.excludeHome && dish.category === 'home') return false;
+                if (currentSettings.excludeQuick && dish.category === 'quick') return false;
+                
+                // 辣度筛选
+                if (dish.spicy > currentSettings.maxSpicyLevel) return false;
+                
+                return true;
+            });
+            
+            // 检查是否有足够的菜品
+            if (availableDishes.length < currentSettings.dishCount) {
+                alert('根据当前筛选条件，可用菜品不足，请调整筛选设置。');
+                return;
+            }
+            
+            // 隐藏提示信息
+            prompt.style.display = 'none';
+            
+            // 清空之前的结果
+            resultArea.innerHTML = '';
+            
+            // 旋转转盘
+            wheel.style.transform = `rotate(${1800 + Math.random() * 360}deg)`;
+            
+            // 禁用抽签按钮
+            drawBtn.disabled = true;
+            drawBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 抽签中...';
+            
+            // 延迟显示结果，与转盘动画同步
+            setTimeout(() => {
+                // 随机选择菜品
+                const selectedDishes = [];
+                const tempDishes = [...availableDishes];
+                
+                for (let i = 0; i < currentSettings.dishCount; i++) {
+                    if (tempDishes.length === 0) break;
+                    
+                    const randomIndex = Math.floor(Math.random() * tempDishes.length);
+                    selectedDishes.push(tempDishes[randomIndex]);
+                    tempDishes.splice(randomIndex, 1);
+                }
+                
+                // 显示结果
+                displayResults(selectedDishes);
+                
+                // 启用按钮并修改文本
+                drawBtn.disabled = false;
+                drawBtn.innerHTML = '<i class="fas fa-redo"></i> 重新抽取';
+                
+                // 显示确认按钮
+                confirmBtn.style.display = 'block';
+            }, 2000);
+        }
+        
+        // 显示结果
+        function displayResults(dishes) {
+            dishes.forEach((dish, index) => {
+                setTimeout(() => {
+                    const dishCard = document.createElement('div');
+                    dishCard.className = 'dish-card';
+                    
+                    // 根据菜系设置标签样式
+                    let tagClass = '';
+                    let tagText = '';
+                    if (dish.category === 'hunan') {
+                        tagClass = 'tag-hunan';
+                        tagText = '湘菜';
+                    } else if (dish.category === 'sichuan') {
+                        tagClass = 'tag-sichuan';
+                        tagText = '川菜';
+                    } else if (dish.category === 'home') {
+                        tagClass = 'tag-home';
+                        tagText = '家常菜';
+                    } else if (dish.category === 'quick') {
+                        tagClass = 'tag-quick';
+                        tagText = '快手菜';
+                    }
+                    
+                    // 创建辣度指示器
+                    let spicyDots = '';
+                    for (let i = 0; i < 5; i++) {
+                        spicyDots += `<div class="spicy-dot ${i < dish.spicy ? 'active' : ''}"></div>`;
+                    }
+                    
+                    dishCard.innerHTML = `
+                        <div class="dish-image">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <div class="dish-info">
+                            <div class="dish-name">${dish.name}</div>
+                            <div class="dish-meta">
+                                <span class="dish-tag ${tagClass}">${tagText}</span>
+                                <div class="spicy-indicator">
+                                    ${spicyDots}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    resultArea.appendChild(dishCard);
+                    
+                    // 添加显示动画
+                    setTimeout(() => {
+                        dishCard.classList.add('show');
+                    }, 50);
+                }, index * 300);
+            });
+        }
+        
+        // 确认选择
+        function confirmSelection() {
+            alert('菜单已确认！祝您用餐愉快！');
+            // 在实际应用中，这里可以添加分享功能或保存到本地存储
+            
+            // 重置界面
+            resetDraw();
+        }
+        
+        // 重置抽签
+        function resetDraw() {
+            // 重置转盘
+            wheel.style.transform = 'rotate(0deg)';
+            
+            // 清空结果
+            resultArea.innerHTML = '';
+            
+            // 显示提示
+            prompt.style.display = 'block';
+            
+            // 重置按钮文本
+            drawBtn.innerHTML = '<i class="fas fa-random"></i> 随机抽选';
+            
+            // 隐藏确认按钮
+            confirmBtn.style.display = 'none';
+        }
+        
+        // 打开设置面板
+        function openSettings() {
+            settingsPanel.classList.add('show');
+        }
+        
+        // 关闭设置面板
+        function closeSettings() {
+            settingsPanel.classList.remove('show');
+        }
+        
+        // 保存设置
+        function saveSettings() {
+            updateSettingsFromUI();
+            closeSettings();
+            alert('设置已保存！');
+        }
+        
+        // 从UI更新设置
+        function updateSettingsFromUI() {
+            currentSettings.excludeHunan = filterHunan.checked;
+            currentSettings.excludeSichuan = filterSichuan.checked;
+            currentSettings.excludeHome = filterHome.checked;
+            currentSettings.excludeQuick = filterQuick.checked;
+            
+            // 获取选中的辣度限制
+            for (const radio of spicyLevelRadios) {
+                if (radio.checked) {
+                    currentSettings.maxSpicyLevel = parseInt(radio.value);
+                    break;
+                }
+            }
+            
+            currentSettings.dishCount = parseInt(dishCountSelect.value);
+        }
+        
+        // 初始化应用
+        init();
+    </script>
+</body>
+</html>
