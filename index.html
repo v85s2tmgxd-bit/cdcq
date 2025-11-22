@@ -4,6 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>今天做什么 - 饭菜抽签小工具</title>
+    
+    <!-- 网站图标配置 -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
+    
+    <!-- Apple Touch Icon (iOS) -->
+    <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23FF7B54' rx='20'/><text y='.9em' font-size='90' fill='white'>🍽️</text></svg>">
+    
+    <!-- Android Chrome Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23FF7B54' rx='20'/><text y='.9em' font-size='90' fill='white'>🍽️</text></svg>">
+    <link rel="icon" type="image/png" sizes="512x512" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23FF7B54' rx='20'/><text y='.9em' font-size='90' fill='white'>🍽️</text></svg>">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="data:application/manifest+json,{
+      \"name\": \"今天做什么\",
+      \"short_name\": \"今天做什么\",
+      \"description\": \"饭菜抽签小工具 - 解决选择困难症\",
+      \"start_url\": \"./\",
+      \"display\": \"standalone\",
+      \"background_color\": \"#FFF9F2\",
+      \"theme_color\": \"#FF7B54\",
+      \"orientation\": \"portrait\",
+      \"icons\": [
+        {
+          \"src\": \"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23FF7B54' rx='20'/><text y='.9em' font-size='90' fill='white'>🍽️</text></svg>\",
+          \"sizes\": \"192x192\",
+          \"type\": \"image/svg+xml\"
+        },
+        {
+          \"src\": \"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23FF7B54' rx='20'/><text y='.9em' font-size='90' fill='white'>🍽️</text></svg>\",
+          \"sizes\": \"512x512\",
+          \"type\": \"image/svg+xml\"
+        }
+      ]
+    }">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -52,6 +87,13 @@
             text-align: center;
             margin-bottom: 10px;
             position: relative;
+        }
+
+        .app-icon {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            display: block;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         h1 {
@@ -521,6 +563,41 @@
             width: 100%;
         }
 
+        .add-to-home-screen {
+            background: var(--accent-blue);
+            color: white;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .instructions {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: var(--shadow);
+            width: 100%;
+        }
+
+        .instructions h3 {
+            color: var(--text-dark);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .instructions ol {
+            padding-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+            color: var(--text-light);
+        }
+
         /* 响应式设计 */
         @media (max-width: 480px) {
             .container {
@@ -535,12 +612,17 @@
             h1 {
                 font-size: 1.8rem;
             }
+            
+            .app-icon {
+                font-size: 3rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
+            <span class="app-icon">🍽️</span>
             <h1>今天做什么</h1>
             <p class="subtitle">800+道菜品随机抽选 · 解决选择困难症</p>
         </header>
@@ -570,6 +652,19 @@
             <button class="confirm-btn">
                 <i class="fas fa-check"></i>
                 确认菜单
+            </button>
+        </div>
+        
+        <div class="instructions">
+            <h3>如何添加到手机屏幕</h3>
+            <ol>
+                <li><strong>iOS用户</strong>：点击底部"分享"按钮 → 选择"添加到主屏幕"</li>
+                <li><strong>Android用户</strong>：点击右上角"..."菜单 → 选择"添加到主屏幕"</li>
+                <li>按照提示完成添加，即可像使用App一样随时打开</li>
+            </ol>
+            <button class="add-to-home-screen">
+                <i class="fas fa-plus"></i>
+                添加到主屏幕
             </button>
         </div>
         
@@ -656,7 +751,7 @@
     </div>
 
     <script>
-        // 完整的菜品数据库
+        // 完整的菜品数据库 - 800+道菜品
         const dishDatabase = {
             hunan: [
                 { name: "辣椒炒肉", spicy: 3 },
@@ -812,90 +907,144 @@
                 { name: "干锅宽粉", spicy: 2 }
             ],
             home: [
+                { name: "回锅肉", spicy: 4 },
+                { name: "小炒黄牛肉", spicy: 4 },
                 { name: "番茄炒蛋", spicy: 0 },
+                { name: "麻婆豆腐", spicy: 5 },
+                { name: "酸辣土豆丝", spicy: 3 },
+                { name: "宫保鸡丁", spicy: 3 },
                 { name: "农家小炒肉", spicy: 3 },
                 { name: "清炒时蔬", spicy: 0 },
+                { name: "鱼香肉丝", spicy: 3 },
+                { name: "剁椒鱼头", spicy: 4 },
                 { name: "可乐鸡翅", spicy: 0 },
+                { name: "水煮肉片", spicy: 5 },
                 { name: "手撕包菜", spicy: 2 },
                 { name: "蒜蓉西兰花", spicy: 0 },
                 { name: "毛氏红烧肉", spicy: 1 },
+                { name: "辣子鸡", spicy: 5 },
                 { name: "葱爆羊肉", spicy: 2 },
                 { name: "地三鲜", spicy: 0 },
+                { name: "夫妻肺片", spicy: 4 },
+                { name: "腊味合蒸", spicy: 2 },
                 { name: "糖醋排骨", spicy: 0 },
+                { name: "干煸豆角", spicy: 4 },
                 { name: "白灼菜心", spicy: 0 },
                 { name: "红烧肉", spicy: 0 },
                 { name: "蒜泥白肉", spicy: 2 },
                 { name: "韭菜炒鸡蛋", spicy: 0 },
                 { name: "木须肉", spicy: 0 },
+                { name: "口水鸡", spicy: 4 },
                 { name: "清蒸鲈鱼", spicy: 0 },
                 { name: "京酱肉丝", spicy: 0 },
+                { name: "毛血旺", spicy: 5 },
                 { name: "蚝油生菜", spicy: 0 },
                 { name: "土豆丝炒肉", spicy: 0 },
                 { name: "西红柿鸡蛋汤", spicy: 0 },
+                { name: "豆豉辣椒蒸排骨", spicy: 3 },
                 { name: "蚂蚁上树", spicy: 2 },
                 { name: "凉拌黄瓜", spicy: 1 },
+                { name: "酸豆角肉末", spicy: 3 },
                 { name: "红烧带鱼", spicy: 0 },
+                { name: "泡椒猪肝", spicy: 4 },
                 { name: "香菇油菜", spicy: 0 },
+                { name: "萝卜干炒腊肉", spicy: 2 },
                 { name: "青椒肉丝", spicy: 2 },
                 { name: "紫菜蛋花汤", spicy: 0 },
+                { name: "口味牛蛙", spicy: 5 },
                 { name: "肉末茄子", spicy: 1 },
                 { name: "素炒三丝", spicy: 0 },
+                { name: "姜辣凤爪", spicy: 4 },
                 { name: "油焖大虾", spicy: 0 },
+                { name: "灯影牛肉", spicy: 3 },
                 { name: "冬瓜排骨汤", spicy: 0 },
                 { name: "菠萝咕咾肉", spicy: 0 },
+                { name: "冷吃兔", spicy: 5 },
                 { name: "蒜蓉空心菜", spicy: 0 },
                 { name: "粉蒸肉", spicy: 0 },
                 { name: "上汤娃娃菜", spicy: 0 },
                 { name: "孜然羊肉", spicy: 2 },
+                { name: "肝腰合炒", spicy: 4 },
                 { name: "拍黄瓜", spicy: 1 },
+                { name: "紫苏炒田螺", spicy: 3 },
                 { name: "梅菜扣肉", spicy: 0 },
                 { name: "丝瓜炒蛋", spicy: 0 },
+                { name: "酱香肘子", spicy: 1 },
                 { name: "锅包肉", spicy: 0 },
                 { name: "清炒荷兰豆", spicy: 0 },
+                { name: "干锅肥肠", spicy: 5 },
                 { name: "酱骨架", spicy: 1 },
                 { name: "蚝油杏鲍菇", spicy: 0 },
+                { name: "水煮牛肉", spicy: 5 },
                 { name: "跷脚牛肉", spicy: 1 },
                 { name: "苦瓜炒蛋", spicy: 0 },
                 { name: "黄焖鸡米饭", spicy: 1 },
+                { name: "担担面", spicy: 4 },
                 { name: "玉米烙", spicy: 0 },
+                { name: "冰糖湘莲", spicy: 0 },
                 { name: "滑溜肉片", spicy: 0 },
+                { name: "龙抄手", spicy: 2 },
                 { name: "芹菜炒香干", spicy: 0 },
+                { name: "剁椒蒸芋头", spicy: 3 },
                 { name: "椒盐虾", spicy: 1 },
+                { name: "叶儿粑", spicy: 0 },
                 { name: "醋溜白菜", spicy: 1 },
+                { name: "鱼香茄子", spicy: 3 },
+                { name: "钵钵鸡", spicy: 4 },
                 { name: "南瓜蒸百合", spicy: 0 },
                 { name: "红烧狮子头", spicy: 0 },
+                { name: "三大炮", spicy: 0 },
                 { name: "清炒山药", spicy: 0 },
+                { name: "腊肉炒藠头", spicy: 2 },
                 { name: "洋葱炒肉", spicy: 0 },
+                { name: "甜水面", spicy: 2 },
                 { name: "雪菜炒毛豆", spicy: 0 },
                 { name: "油炸臭豆腐", spicy: 2 },
                 { name: "糖醋里脊", spicy: 0 },
+                { name: "川北凉粉", spicy: 3 },
                 { name: "芦笋炒虾仁", spicy: 0 },
+                { name: "湖南米粉", spicy: 3 },
                 { name: "爆三样", spicy: 1 },
+                { name: "宜宾燃面", spicy: 4 },
                 { name: "孜然土豆", spicy: 1 },
+                { name: "酸菜鱼", spicy: 4 },
                 { name: "麻油沙姜鸡", spicy: 1 },
+                { name: "武冈卤菜", spicy: 2 },
                 { name: "尖椒鸡蛋", spicy: 2 },
                 { name: "开水白菜", spicy: 0 },
                 { name: "豆角焖面", spicy: 0 },
                 { name: "红烧黄鱼", spicy: 0 },
+                { name: "鸡豆花", spicy: 0 },
                 { name: "西芹炒百合", spicy: 0 },
                 { name: "白菜豆腐煲", spicy: 0 },
                 { name: "虾皮蒸蛋", spicy: 0 },
                 { name: "椒盐蘑菇", spicy: 1 },
+                { name: "乐山甜皮鸭", spicy: 0 },
                 { name: "肉末蒸豆腐", spicy: 0 },
                 { name: "腐竹炒肉", spicy: 0 },
+                { name: "自贡冷吃牛肉", spicy: 5 },
                 { name: "清炒豆苗", spicy: 0 },
                 { name: "西红柿烧菜花", spicy: 0 },
                 { name: "凉拌皮蛋", spicy: 1 },
                 { name: "咖喱鸡块", spicy: 1 },
+                { name: "达州灯影牛肉", spicy: 3 },
                 { name: "蒜蓉粉丝蒸丝瓜", spicy: 0 },
+                { name: "回锅土豆", spicy: 2 },
+                { name: "泸州白糕", spicy: 0 },
                 { name: "菠菜炒鸡蛋", spicy: 0 },
+                { name: "平江火焙鱼", spicy: 2 },
                 { name: "葱烧豆腐", spicy: 0 },
+                { name: "眉山东坡肉", spicy: 0 },
                 { name: "腊肠炒饭", spicy: 1 },
                 { name: "炸藕盒", spicy: 0 },
+                { name: "广元蒸凉面", spicy: 2 },
                 { name: "蚝油青椒牛肉", spicy: 2 },
+                { name: "益阳松花皮蛋", spicy: 1 },
                 { name: "肉皮冻", spicy: 0 },
+                { name: "南充川北凉粉", spicy: 3 },
                 { name: "虾仁炒黄瓜", spicy: 0 },
                 { name: "酱爆鸡丁", spicy: 1 },
+                { name: "内江牛肉面", spicy: 3 },
                 { name: "清炒苦瓜", spicy: 0 },
                 { name: "红烧鸡块", spicy: 0 },
                 { name: "凉拌海带丝", spicy: 1 },
@@ -904,10 +1053,12 @@
                 { name: "干炸小黄鱼", spicy: 0 },
                 { name: "蒜苔炒肉", spicy: 1 },
                 { name: "萝卜炖牛腩", spicy: 0 },
+                { name: "雅安酱排骨", spicy: 1 },
                 { name: "炝炒圆白菜", spicy: 1 },
                 { name: "炸鸡排", spicy: 0 },
                 { name: "蚝油香菇", spicy: 0 },
                 { name: "肉末炒豌豆", spicy: 0 },
+                { name: "甘孜牦牛肉干", spicy: 2 },
                 { name: "虾酱炒空心菜", spicy: 1 },
                 { name: "酱香饼", spicy: 0 },
                 { name: "蟹黄豆腐", spicy: 0 },
@@ -935,10 +1086,12 @@
                 { name: "蚝油平菇", spicy: 0 },
                 { name: "西红柿鸡蛋打卤面", spicy: 0 },
                 { name: "蒜蓉蒸金针菇", spicy: 0 },
+                { name: "益阳安化腊肉", spicy: 2 },
                 { name: "炸薯条", spicy: 0 },
                 { name: "白菜炖粉条", spicy: 0 },
                 { name: "可乐虎皮蛋", spicy: 0 },
                 { name: "清炒草头", spicy: 0 },
+                { name: "蚂蚁上树", spicy: 2 },
                 { name: "皮蛋豆腐", spicy: 1 },
                 { name: "红烧蹄髈", spicy: 0 },
                 { name: "肉夹馍", spicy: 0 },
@@ -956,6 +1109,7 @@
                 { name: "清炒魔芋", spicy: 0 },
                 { name: "肉丸汤", spicy: 0 },
                 { name: "醋溜土豆丝", spicy: 1 },
+                { name: "酱香饼", spicy: 0 },
                 { name: "凉拌面", spicy: 1 },
                 { name: "红烧鳊鱼", spicy: 0 },
                 { name: "蒜蓉炒通心菜", spicy: 0 },
@@ -981,6 +1135,7 @@
                 { name: "清炒马兰头", spicy: 0 },
                 { name: "酱油炒饭", spicy: 0 },
                 { name: "雪菜黄鱼汤", spicy: 1 },
+                { name: "酱香饼", spicy: 0 },
                 { name: "凉拌牛百叶", spicy: 2 },
                 { name: "葱油拌面", spicy: 0 },
                 { name: "蒜蓉烤生蚝", spicy: 1 },
@@ -991,32 +1146,6 @@
                 { name: "凉拌藕片", spicy: 1 },
                 { name: "葱爆鸭块", spicy: 1 },
                 { name: "雪菜毛豆炒肉丝", spicy: 1 },
-                { name: "酱牛肉", spicy: 1 },
-                { name: "清炒西洋菜", spicy: 0 },
-                { name: "红烧牛尾", spicy: 0 },
-                { name: "蒜蓉蒸娃娃菜", spicy: 0 },
-                { name: "卤煮火烧", spicy: 1 },
-                { name: "凉拌三丝", spicy: 1 },
-                { name: "葱油鸡", spicy: 0 },
-                { name: "雪菜笋丝", spicy: 1 },
-                { name: "炸鸡软骨", spicy: 0 },
-                { name: "肉饼蒸蛋", spicy: 0 },
-                { name: "醋溜木须", spicy: 1 },
-                { name: "酱焖小鱼", spicy: 1 },
-                { name: "蒜蓉丝瓜", spicy: 0 },
-                { name: "红烧猪脚", spicy: 0 },
-                { name: "凉拌蕨根粉", spicy: 2 },
-                { name: "葱油海瓜子", spicy: 1 },
-                { name: "雪菜炒饭", spicy: 1 },
-                { name: "炸汤圆", spicy: 0 },
-                { name: "清炒红薯叶", spicy: 0 },
-                { name: "肉末炒酸豆角", spicy: 2 },
-                { name: "炸藕条", spicy: 0 },
-                { name: "凉拌猪耳朵", spicy: 2 },
-                { name: "葱烧蹄筋", spicy: 0 },
-                { name: "蒜蓉炒苋菜", spicy: 0 },
-                { name: "酱油鸡", spicy: 0 },
-                { name: "雪菜肉丝面", spicy: 1 },
                 { name: "酱香鸭舌", spicy: 1 },
                 { name: "清炒牛蒡", spicy: 0 },
                 { name: "卤蛋", spicy: 0 },
@@ -1204,6 +1333,7 @@
         const settingsPanel = document.querySelector('.settings-panel');
         const closeBtn = document.querySelector('.close-btn');
         const saveSettingsBtn = settingsPanel.querySelector('.draw-btn');
+        const addToHomeScreenBtn = document.querySelector('.add-to-home-screen');
         
         // 筛选选项
         const filterHunan = document.getElementById('filter-hunan');
@@ -1230,6 +1360,7 @@
             settingsBtn.addEventListener('click', openSettings);
             closeBtn.addEventListener('click', closeSettings);
             saveSettingsBtn.addEventListener('click', saveSettings);
+            addToHomeScreenBtn.addEventListener('click', showAddToHomeScreenInstructions);
             
             // 初始隐藏确认按钮
             confirmBtn.style.display = 'none';
@@ -1396,6 +1527,11 @@
             updateSettingsFromUI();
             closeSettings();
             alert('设置已保存！');
+        }
+        
+        // 显示添加到主屏幕的说明
+        function showAddToHomeScreenInstructions() {
+            alert('添加到主屏幕说明：\n\niOS用户：点击底部"分享"按钮 → 选择"添加到主屏幕"\nAndroid用户：点击右上角"..."菜单 → 选择"添加到主屏幕"\n\n按照提示完成添加，即可像使用App一样随时打开！');
         }
         
         // 从UI更新设置
